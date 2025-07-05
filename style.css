@@ -6,19 +6,19 @@ body {
     justify-content: center;
     min-height: 100vh;
     margin: 0;
-    background-color: #222;
+    background-color: #36454F; /* Charcoal */
     color: #eee;
 }
 
 h1 {
-    color: #0f0;
+    color: #6495ED; /* Cornflower Blue */
 }
 
 .game-container {
     display: flex;
-    background-color: #333;
-    border: 5px solid #555;
-    box-shadow: 0 0 20px rgba(0,255,0,0.5);
+    background-color: #4682B4; /* Steel Blue */
+    border: 5px solid #778899; /* Light Slate Gray */
+    box-shadow: 0 0 20px rgba(100,149,237,0.5); /* Cornflower Blue shadow */
 }
 
 #game-board {

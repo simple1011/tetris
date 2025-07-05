@@ -170,15 +170,16 @@ function freeze() {
 
         checkRows(); // Check for completed rows
 
-        generateNewBlock(); // Generate the next block
+        // Generate the next block
+        generateNewBlock();
 
         // Check for game over: if the new block spawns into an occupied space
         if (currentBlock.shape.some(index => board[currentBlock.position + index].classList.contains('block'))) {
             alert('게임 오버!');
             clearInterval(gameInterval);
             startButton.textContent = '다시 시작'; // Allow restarting
+            return;
         }
-        return;
     }
 }
 
@@ -223,19 +224,29 @@ function generateNewBlock() {
 
 function checkRows() {
     for (let i = 0; i < BOARD_HEIGHT; i++) {
-        const row = [];
-        for (let j = 0; j < BOARD_WIDTH; j++) {
-            row.push(board[i * BOARD_WIDTH + j]);
-        }
+        const rowStartIndex = i * BOARD_WIDTH;
+        const rowEndIndex = rowStartIndex + BOARD_WIDTH;
+        const rowCells = board.slice(rowStartIndex, rowEndIndex);
 
-        if (row.every(cell => cell.classList.contains('block'))) {
+        if (rowCells.every(cell => cell.classList.contains('block'))) {
             score += 10;
             scoreDisplay.textContent = score;
-            row.forEach(cell => {
-                cell.classList.remove('block', ...COLORS);
-            });
-            const removedCells = board.splice(i * BOARD_WIDTH, BOARD_WIDTH);
-            board = removedCells.concat(board);
+
+            // Remove the completed row from the board array
+            for (let j = 0; j < BOARD_WIDTH; j++) {
+                board[rowStartIndex + j].classList.remove('block', ...COLORS);
+            }
+
+            // Move all rows above down by one
+            const cellsRemoved = board.splice(rowStartIndex, BOARD_WIDTH);
+            board.unshift(...cellsRemoved.map(() => {
+                const newCell = document.createElement('div');
+                newCell.classList.add('cell');
+                return newCell;
+            }));
+
+            // Re-append all cells to the gameBoard to reflect changes
+            gameBoard.innerHTML = '';
             board.forEach(cell => gameBoard.appendChild(cell));
         }
     }
