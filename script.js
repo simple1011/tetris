@@ -6,6 +6,26 @@ const gameBoard = document.getElementById('game-board');
 const scoreDisplay = document.getElementById('score');
 const nextBlockDisplay = document.getElementById('next-block');
 const startButton = document.getElementById('start-button');
+const settingsButton = document.getElementById('settings-button');
+const settingsModal = document.getElementById('settings-modal');
+const settingsCloseButton = document.querySelector('#settings-modal .close-button');
+const saveHotkeysButton = document.getElementById('save-hotkeys');
+
+const hotkeyInputs = {
+    moveLeft: document.getElementById('moveLeftKey'),
+    moveRight: document.getElementById('moveRightKey'),
+    moveDown: document.getElementById('moveDownKey'),
+    rotate: document.getElementById('rotateKey'),
+    hardDrop: document.getElementById('hardDropKey')
+};
+
+let customHotkeys = JSON.parse(localStorage.getItem('tetrisHotkeys')) || {
+    moveLeft: 'ArrowLeft',
+    moveRight: 'ArrowRight',
+    moveDown: 'ArrowDown',
+    rotate: 'ArrowUp',
+    hardDrop: 'Space'
+};
 
 let board = [];
 let score = 0;
@@ -108,6 +128,13 @@ function generateNewBlock() {
     drawNextBlock();
 
     draw();
+
+    // Check for game over immediately after drawing the new block
+    if (currentBlock.shape.some(index => board[currentBlock.position + index].classList.contains('block'))) {
+        alert('게임 오버!');
+        clearInterval(gameInterval);
+        startButton.textContent = '다시 시작'; // Allow restarting
+    }
 }
 
 function drawNextBlock() {
@@ -211,15 +238,41 @@ function rotate() {
 }
 
 function generateNewBlock() {
-    const random = Math.floor(Math.random() * TETROMINOS.length);
-    currentBlock = {
+    if (bag.length === 0) {
+        fillBag();
+    }
+    const random = bag.pop();
+
+    currentBlock = nextBlock || {
         tetromino: TETROMINOS[random],
         color: COLORS[random],
         rotation: 0,
         position: BOARD_WIDTH * 2 + Math.floor(BOARD_WIDTH / 2) - 1,
         shape: TETROMINOS[random][0]
     };
+
+    // Prepare next block
+    if (bag.length === 0) {
+        fillBag();
+    }
+    const nextRandom = bag.pop();
+    nextBlock = {
+        tetromino: TETROMINOS[nextRandom],
+        color: COLORS[nextRandom],
+        rotation: 0,
+        position: 0, // Position doesn't matter for next block display
+        shape: TETROMINOS[nextRandom][0]
+    };
+    drawNextBlock();
+
     draw();
+
+    // Check for game over immediately after drawing the new block
+    if (currentBlock.shape.some(index => board[currentBlock.position + index].classList.contains('block'))) {
+        alert('게임 오버!');
+        clearInterval(gameInterval);
+        startButton.textContent = '다시 시작'; // Allow restarting
+    }
 }
 
 function checkRows() {
@@ -237,22 +290,30 @@ function checkRows() {
                 board[rowStartIndex + j].classList.remove('block', ...COLORS);
             }
 
-            // Move all rows above down by one
-            const cellsRemoved = board.splice(rowStartIndex, BOARD_WIDTH);
-            board.unshift(...cellsRemoved.map(() => {
+            // Remove the row from the DOM
+            for (let j = 0; j < BOARD_WIDTH; j++) {
+                gameBoard.removeChild(board[rowStartIndex + j]);
+            }
+
+            // Remove from board array and add new empty cells at the top
+            const newEmptyCells = Array.from({ length: BOARD_WIDTH }, () => {
                 const newCell = document.createElement('div');
                 newCell.classList.add('cell');
                 return newCell;
-            }));
+            });
+            board.splice(rowStartIndex, BOARD_WIDTH);
+            board.unshift(...newEmptyCells);
 
             // Re-append all cells to the gameBoard to reflect changes
-            gameBoard.innerHTML = '';
-            board.forEach(cell => gameBoard.appendChild(cell));
+            gameBoard.innerHTML = ''; // Clear existing DOM elements
+            board.forEach(cell => gameBoard.appendChild(cell)); // Append updated board
         }
     }
 }
 
 function startGame() {
+    board = []; // Clear the board array
+    gameBoard.innerHTML = ''; // Clear the DOM board
     createBoard();
     fillBag(); // Initialize the bag
     nextBlock = null; // Clear next block for first generation
@@ -261,3 +322,48 @@ function startGame() {
 }
 
 startButton.addEventListener('click', startGame);
+
+settingsButton.addEventListener('click', () => {
+    loadHotkeysToModal();
+    settingsModal.style.display = 'block';
+});
+
+settingsCloseButton.addEventListener('click', () => {
+    settingsModal.style.display = 'none';
+});
+
+saveHotkeysButton.addEventListener('click', () => {
+    saveHotkeysFromModal();
+    settingsModal.style.display = 'none';
+});
+
+function loadHotkeysToModal() {
+    for (const action in hotkeyInputs) {
+        hotkeyInputs[action].value = customHotkeys[action];
+    }
+}
+
+function saveHotkeysFromModal() {
+    for (const action in hotkeyInputs) {
+        customHotkeys[action] = hotkeyInputs[action].value;
+    }
+    localStorage.setItem('tetrisHotkeys', JSON.stringify(customHotkeys));
+}
+
+// Initial load of hotkeys
+loadHotkeysToModal();
+
+// Keyboard controls
+document.addEventListener('keydown', e => {
+    if (e.key === customHotkeys.moveLeft) {
+        moveLeft();
+    } else if (e.key === customHotkeys.moveRight) {
+        moveRight();
+    } else if (e.key === customHotkeys.moveDown) {
+        moveDown();
+    } else if (e.key === customHotkeys.rotate) {
+        rotate();
+    } else if (e.key === customHotkeys.hardDrop) {
+        // Implement hard drop later
+    }
+});

@@ -19,8 +19,39 @@
                 <div id="next-block"></div>
             </div>
             <button id="start-button">시작</button>
+            <button id="settings-button">설정</button>
         </div>
     </div>
+
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>설정</h2>
+            <h3>단축키 설정</h3>
+            <div class="hotkey-setting">
+                <label for="moveLeftKey">왼쪽 이동:</label>
+                <input type="text" id="moveLeftKey" data-action="moveLeft">
+            </div>
+            <div class="hotkey-setting">
+                <label for="moveRightKey">오른쪽 이동:</label>
+                <input type="text" id="moveRightKey" data-action="moveRight">
+            </div>
+            <div class="hotkey-setting">
+                <label for="moveDownKey">아래 이동:</label>
+                <input type="text" id="moveDownKey" data-action="moveDown">
+            </div>
+            <div class="hotkey-setting">
+                <label for="rotateKey">회전:</label>
+                <input type="text" id="rotateKey" data-action="rotate">
+            </div>
+            <div class="hotkey-setting">
+                <label for="hardDropKey">하드 드롭:</label>
+                <input type="text" id="hardDropKey" data-action="hardDrop">
+            </div>
+            <button id="save-hotkeys">저장</button>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>

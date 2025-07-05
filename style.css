@@ -84,10 +84,84 @@ h1 {
 }
 
 /* Tetromino colors */
-.I { background-color: cyan; border-color: darkcyan; }
-.J { background-color: blue; border-color: darkblue; }
 .L { background-color: orange; border-color: darkorange; }
+.J { background-color: blue; border-color: darkblue; }
+.I { background-color: cyan; border-color: darkcyan; }
 .O { background-color: yellow; border-color: goldenrod; }
 .S { background-color: limegreen; border-color: darkgreen; }
 .T { background-color: purple; border-color: darkmagenta; }
 .Z { background-color: red; border-color: darkred; }
+
+/* Modal Styles */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+.modal-content {
+    background-color: #333;
+    margin: 15% auto; /* 15% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Could be more or less, depending on screen size */
+    max-width: 500px;
+    position: relative;
+    color: #eee;
+}
+
+.close-button {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: #fff;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.modal-content h2, .modal-content h3 {
+    margin-top: 0;
+    color: #6495ED;
+}
+
+.hotkey-setting {
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.hotkey-setting label {
+    flex: 1;
+}
+
+.hotkey-setting input[type="text"] {
+    width: 80px;
+    padding: 5px;
+    text-align: center;
+    border: 1px solid #666;
+    background-color: #222;
+    color: #eee;
+}
+
+#save-hotkeys {
+    padding: 10px 20px;
+    font-size: 1em;
+    cursor: pointer;
+    background-color: #6495ED;
+    color: #222;
+    border: none;
+    border-radius: 5px;
+    margin-top: 20px;
+}
