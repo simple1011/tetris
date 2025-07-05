@@ -13,6 +13,7 @@ let currentBlock;
 let nextBlock;
 let gameInterval;
 let gameSpeed = 500; // milliseconds
+let bag = [];
 
 const TETROMINOS = [
     // L
@@ -68,6 +69,68 @@ const TETROMINOS = [
 
 const COLORS = ['orange', 'blue', 'cyan', 'yellow', 'limegreen', 'purple', 'red'];
 
+// Bag system
+function fillBag() {
+    bag = Array.from({ length: TETROMINOS.length }, (_, i) => i);
+    // Shuffle the bag (Fisher-Yates shuffle)
+    for (let i = bag.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [bag[i], bag[j]] = [bag[j], bag[i]];
+    }
+}
+
+function generateNewBlock() {
+    if (bag.length === 0) {
+        fillBag();
+    }
+    const random = bag.pop();
+
+    currentBlock = nextBlock || {
+        tetromino: TETROMINOS[random],
+        color: COLORS[random],
+        rotation: 0,
+        position: BOARD_WIDTH * 2 + Math.floor(BOARD_WIDTH / 2) - 1,
+        shape: TETROMINOS[random][0]
+    };
+
+    // Prepare next block
+    if (bag.length === 0) {
+        fillBag();
+    }
+    const nextRandom = bag.pop();
+    nextBlock = {
+        tetromino: TETROMINOS[nextRandom],
+        color: COLORS[nextRandom],
+        rotation: 0,
+        position: 0, // Position doesn't matter for next block display
+        shape: TETROMINOS[nextRandom][0]
+    };
+    drawNextBlock();
+
+    draw();
+}
+
+function drawNextBlock() {
+    nextBlockDisplay.innerHTML = '';
+    const displayGridSize = 4; // 4x4 grid for next block display
+    for (let i = 0; i < displayGridSize * displayGridSize; i++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        nextBlockDisplay.appendChild(cell);
+    }
+
+    nextBlock.shape.forEach(index => {
+        // Adjust position for 4x4 display grid
+        const row = Math.floor(index / BOARD_WIDTH);
+        const col = index % BOARD_WIDTH;
+        const displayIndex = row * displayGridSize + col;
+
+        if (displayIndex < displayGridSize * displayGridSize) {
+            nextBlockDisplay.children[displayIndex].classList.add('block', nextBlock.color);
+        }
+    });
+}
+
 function createBoard() {
     for (let i = 0; i < BOARD_WIDTH * BOARD_HEIGHT; i++) {
         const cell = document.createElement('div');
@@ -97,11 +160,24 @@ function moveDown() {
 }
 
 function freeze() {
-    if (currentBlock.shape.some(index => board[currentBlock.position + index + BOARD_WIDTH].classList.contains('block'))) {
-        currentBlock.shape.forEach(index => board[currentBlock.position + index].classList.add('block'));
-        generateNewBlock();
-        checkRows();
-        gameOver();
+    // Check if the block has landed
+    if (currentBlock.shape.some(index =>
+        (currentBlock.position + index + BOARD_WIDTH >= BOARD_WIDTH * BOARD_HEIGHT) || // Hit bottom
+        (board[currentBlock.position + index + BOARD_WIDTH] && board[currentBlock.position + index + BOARD_WIDTH].classList.contains('block')) // Hit another block
+    )) {
+        // Add the current block to the fixed board
+        currentBlock.shape.forEach(index => board[currentBlock.position + index].classList.add('block', currentBlock.color));
+
+        checkRows(); // Check for completed rows
+
+        generateNewBlock(); // Generate the next block
+
+        // Check for game over: if the new block spawns into an occupied space
+        if (currentBlock.shape.some(index => board[currentBlock.position + index].classList.contains('block'))) {
+            alert('게임 오버!');
+            clearInterval(gameInterval);
+            startButton.textContent = '다시 시작'; // Allow restarting
+        }
         return;
     }
 }
@@ -165,15 +241,10 @@ function checkRows() {
     }
 }
 
-function gameOver() {
-    if (currentBlock.shape.some(index => board[currentBlock.position + index].classList.contains('block'))) {
-        alert('게임 오버!');
-        clearInterval(gameInterval);
-    }
-}
-
 function startGame() {
     createBoard();
+    fillBag(); // Initialize the bag
+    nextBlock = null; // Clear next block for first generation
     generateNewBlock();
     gameInterval = setInterval(moveDown, gameSpeed);
 }
