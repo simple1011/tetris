@@ -68,19 +68,19 @@ h1 {
     margin-top: 10px;
 }
 
-#start-button {
+#start-button, #settings-button {
     padding: 10px 20px;
     font-size: 1.2em;
     cursor: pointer;
-    background-color: #0f0;
+    background-color: #6495ED; /* Cornflower Blue */
     color: #222;
     border: none;
     border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0,255,0,0.5);
+    box-shadow: 0 0 10px rgba(100,149,237,0.5);
 }
 
-#start-button:hover {
-    background-color: #0a0;
+#start-button:hover, #settings-button:hover {
+    background-color: #4169E1; /* Royal Blue */
 }
 
 /* Tetromino colors */

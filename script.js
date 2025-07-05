@@ -36,49 +36,49 @@ let gameSpeed = 500; // milliseconds
 let bag = [];
 
 const TETROMINOS = [
-    // L
+    // L (orange)
     [
         [1, BOARD_WIDTH + 1, BOARD_WIDTH * 2 + 1, 2],
         [BOARD_WIDTH, BOARD_WIDTH + 1, BOARD_WIDTH + 2, BOARD_WIDTH * 2 + 2],
         [1, BOARD_WIDTH + 1, BOARD_WIDTH * 2 + 1, BOARD_WIDTH * 2],
         [BOARD_WIDTH, BOARD_WIDTH * 2, BOARD_WIDTH * 2 + 1, BOARD_WIDTH * 2 + 2]
     ],
-    // J
+    // J (blue)
     [
         [1, BOARD_WIDTH + 1, BOARD_WIDTH * 2 + 1, 0],
         [BOARD_WIDTH, BOARD_WIDTH * 2, BOARD_WIDTH * 2 + 1, BOARD_WIDTH * 2 + 2],
         [1, BOARD_WIDTH + 1, BOARD_WIDTH * 2 + 1, BOARD_WIDTH * 2 + 2],
         [2, BOARD_WIDTH, BOARD_WIDTH + 1, BOARD_WIDTH + 2]
     ],
-    // I
+    // I (cyan)
     [
         [1, BOARD_WIDTH + 1, BOARD_WIDTH * 2 + 1, BOARD_WIDTH * 3 + 1],
         [BOARD_WIDTH, BOARD_WIDTH + 1, BOARD_WIDTH + 2, BOARD_WIDTH + 3],
         [1, BOARD_WIDTH + 1, BOARD_WIDTH * 2 + 1, BOARD_WIDTH * 3 + 1],
         [BOARD_WIDTH, BOARD_WIDTH + 1, BOARD_WIDTH + 2, BOARD_WIDTH + 3]
     ],
-    // O
+    // O (yellow)
     [
         [0, 1, BOARD_WIDTH, BOARD_WIDTH + 1],
         [0, 1, BOARD_WIDTH, BOARD_WIDTH + 1],
         [0, 1, BOARD_WIDTH, BOARD_WIDTH + 1],
         [0, 1, BOARD_WIDTH, BOARD_WIDTH + 1]
     ],
-    // S
+    // S (limegreen)
     [
         [BOARD_WIDTH + 1, BOARD_WIDTH + 2, BOARD_WIDTH * 2, BOARD_WIDTH * 2 + 1],
         [0, BOARD_WIDTH, BOARD_WIDTH + 1, BOARD_WIDTH * 2 + 1],
         [BOARD_WIDTH + 1, BOARD_WIDTH + 2, BOARD_WIDTH * 2, BOARD_WIDTH * 2 + 1],
         [0, BOARD_WIDTH, BOARD_WIDTH + 1, BOARD_WIDTH * 2 + 1]
     ],
-    // T
+    // T (purple)
     [
         [1, BOARD_WIDTH, BOARD_WIDTH + 1, BOARD_WIDTH + 2],
         [1, BOARD_WIDTH + 1, BOARD_WIDTH + 2, BOARD_WIDTH * 2 + 1],
         [BOARD_WIDTH, BOARD_WIDTH + 1, BOARD_WIDTH + 2, BOARD_WIDTH * 2 + 1],
         [1, BOARD_WIDTH, BOARD_WIDTH + 1, BOARD_WIDTH * 2 + 1]
     ],
-    // Z
+    // Z (red)
     [
         [BOARD_WIDTH, BOARD_WIDTH + 1, BOARD_WIDTH * 2 + 1, BOARD_WIDTH * 2 + 2],
         [2, BOARD_WIDTH + 1, BOARD_WIDTH * 2 + 1, BOARD_WIDTH * 2],
@@ -113,6 +113,14 @@ function generateNewBlock() {
         shape: TETROMINOS[random][0]
     };
 
+    // Check for game over before drawing the new block
+    if (currentBlock.shape.some(index => board[currentBlock.position + index].classList.contains('block'))) {
+        alert('게임 오버!');
+        clearInterval(gameInterval);
+        startButton.textContent = '다시 시작'; // Allow restarting
+        return;
+    }
+
     // Prepare next block
     if (bag.length === 0) {
         fillBag();
@@ -128,13 +136,6 @@ function generateNewBlock() {
     drawNextBlock();
 
     draw();
-
-    // Check for game over immediately after drawing the new block
-    if (currentBlock.shape.some(index => board[currentBlock.position + index].classList.contains('block'))) {
-        alert('게임 오버!');
-        clearInterval(gameInterval);
-        startButton.textContent = '다시 시작'; // Allow restarting
-    }
 }
 
 function drawNextBlock() {
@@ -152,7 +153,8 @@ function drawNextBlock() {
         const col = index % BOARD_WIDTH;
         const displayIndex = row * displayGridSize + col;
 
-        if (displayIndex < displayGridSize * displayGridSize) {
+        // Ensure the displayIndex is within the bounds of the 4x4 grid
+        if (displayIndex >= 0 && displayIndex < displayGridSize * displayGridSize) {
             nextBlockDisplay.children[displayIndex].classList.add('block', nextBlock.color);
         }
     });
@@ -169,13 +171,19 @@ function createBoard() {
 
 function draw() {
     currentBlock.shape.forEach(index => {
-        board[currentBlock.position + index].classList.add('block', currentBlock.color);
+        // Ensure index is within board bounds before drawing
+        if (currentBlock.position + index >= 0 && currentBlock.position + index < BOARD_WIDTH * BOARD_HEIGHT) {
+            board[currentBlock.position + index].classList.add('block', currentBlock.color);
+        }
     });
 }
 
 function undraw() {
     currentBlock.shape.forEach(index => {
-        board[currentBlock.position + index].classList.remove('block', currentBlock.color);
+        // Ensure index is within board bounds before undrawing
+        if (currentBlock.position + index >= 0 && currentBlock.position + index < BOARD_WIDTH * BOARD_HEIGHT) {
+            board[currentBlock.position + index].classList.remove('block', currentBlock.color);
+        }
     });
 }
 
@@ -199,14 +207,6 @@ function freeze() {
 
         // Generate the next block
         generateNewBlock();
-
-        // Check for game over: if the new block spawns into an occupied space
-        if (currentBlock.shape.some(index => board[currentBlock.position + index].classList.contains('block'))) {
-            alert('게임 오버!');
-            clearInterval(gameInterval);
-            startButton.textContent = '다시 시작'; // Allow restarting
-            return;
-        }
     }
 }
 
@@ -214,8 +214,9 @@ function moveLeft() {
     undraw();
     const isAtLeftEdge = currentBlock.shape.some(index => (currentBlock.position + index) % BOARD_WIDTH === 0);
     if (!isAtLeftEdge) currentBlock.position -= 1;
+    // Check for collision after moving
     if (currentBlock.shape.some(index => board[currentBlock.position + index].classList.contains('block'))) {
-        currentBlock.position += 1;
+        currentBlock.position += 1; // Move back if collided
     }
     draw();
 }
@@ -224,89 +225,49 @@ function moveRight() {
     undraw();
     const isAtRightEdge = currentBlock.shape.some(index => (currentBlock.position + index) % BOARD_WIDTH === BOARD_WIDTH - 1);
     if (!isAtRightEdge) currentBlock.position += 1;
+    // Check for collision after moving
     if (currentBlock.shape.some(index => board[currentBlock.position + index].classList.contains('block'))) {
-        currentBlock.position -= 1;
+        currentBlock.position -= 1; // Move back if collided
     }
     draw();
 }
 
 function rotate() {
     undraw();
+    const originalRotation = currentBlock.rotation;
     currentBlock.rotation = (currentBlock.rotation + 1) % currentBlock.tetromino.length;
     currentBlock.shape = currentBlock.tetromino[currentBlock.rotation];
-    draw();
-}
 
-function generateNewBlock() {
-    if (bag.length === 0) {
-        fillBag();
-    }
-    const random = bag.pop();
-
-    currentBlock = nextBlock || {
-        tetromino: TETROMINOS[random],
-        color: COLORS[random],
-        rotation: 0,
-        position: BOARD_WIDTH * 2 + Math.floor(BOARD_WIDTH / 2) - 1,
-        shape: TETROMINOS[random][0]
-    };
-
-    // Prepare next block
-    if (bag.length === 0) {
-        fillBag();
-    }
-    const nextRandom = bag.pop();
-    nextBlock = {
-        tetromino: TETROMINOS[nextRandom],
-        color: COLORS[nextRandom],
-        rotation: 0,
-        position: 0, // Position doesn't matter for next block display
-        shape: TETROMINOS[nextRandom][0]
-    };
-    drawNextBlock();
-
-    draw();
-
-    // Check for game over immediately after drawing the new block
+    // Simple collision check after rotation
     if (currentBlock.shape.some(index => board[currentBlock.position + index].classList.contains('block'))) {
-        alert('게임 오버!');
-        clearInterval(gameInterval);
-        startButton.textContent = '다시 시작'; // Allow restarting
+        currentBlock.rotation = originalRotation; // Revert rotation if collided
+        currentBlock.shape = currentBlock.tetromino[currentBlock.rotation];
     }
+    draw();
 }
 
 function checkRows() {
     for (let i = 0; i < BOARD_HEIGHT; i++) {
         const rowStartIndex = i * BOARD_WIDTH;
-        const rowEndIndex = rowStartIndex + BOARD_WIDTH;
-        const rowCells = board.slice(rowStartIndex, rowEndIndex);
+        const rowCells = board.slice(rowStartIndex, rowStartIndex + BOARD_WIDTH);
 
         if (rowCells.every(cell => cell.classList.contains('block'))) {
             score += 10;
             scoreDisplay.textContent = score;
 
-            // Remove the completed row from the board array
-            for (let j = 0; j < BOARD_WIDTH; j++) {
-                board[rowStartIndex + j].classList.remove('block', ...COLORS);
-            }
-
-            // Remove the row from the DOM
+            // Remove the completed row from the DOM and board array
             for (let j = 0; j < BOARD_WIDTH; j++) {
                 gameBoard.removeChild(board[rowStartIndex + j]);
             }
+            board.splice(rowStartIndex, BOARD_WIDTH);
 
-            // Remove from board array and add new empty cells at the top
-            const newEmptyCells = Array.from({ length: BOARD_WIDTH }, () => {
+            // Add new empty cells at the top of the board array and DOM
+            for (let j = 0; j < BOARD_WIDTH; j++) {
                 const newCell = document.createElement('div');
                 newCell.classList.add('cell');
-                return newCell;
-            });
-            board.splice(rowStartIndex, BOARD_WIDTH);
-            board.unshift(...newEmptyCells);
-
-            // Re-append all cells to the gameBoard to reflect changes
-            gameBoard.innerHTML = ''; // Clear existing DOM elements
-            board.forEach(cell => gameBoard.appendChild(cell)); // Append updated board
+                board.unshift(newCell);
+                gameBoard.prepend(newCell);
+            }
         }
     }
 }
