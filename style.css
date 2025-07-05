@@ -1,0 +1,93 @@
+body {
+    font-family: 'Arial', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    background-color: #222;
+    color: #eee;
+}
+
+h1 {
+    color: #0f0;
+}
+
+.game-container {
+    display: flex;
+    background-color: #333;
+    border: 5px solid #555;
+    box-shadow: 0 0 20px rgba(0,255,0,0.5);
+}
+
+#game-board {
+    display: grid;
+    grid-template-rows: repeat(20, 20px);
+    grid-template-columns: repeat(10, 20px);
+    background-color: #000;
+    border: 2px solid #444;
+}
+
+.cell {
+    width: 20px;
+    height: 20px;
+    background-color: #111;
+    border: 1px solid #333;
+}
+
+.block {
+    background-color: #0f0;
+    border: 1px solid #0a0;
+}
+
+.sidebar {
+    width: 150px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.score-panel, .next-block-panel {
+    background-color: #444;
+    border: 2px solid #666;
+    padding: 10px;
+    width: 100px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#next-block {
+    display: grid;
+    grid-template-rows: repeat(4, 20px);
+    grid-template-columns: repeat(4, 20px);
+    background-color: #222;
+    border: 1px solid #555;
+    margin-top: 10px;
+}
+
+#start-button {
+    padding: 10px 20px;
+    font-size: 1.2em;
+    cursor: pointer;
+    background-color: #0f0;
+    color: #222;
+    border: none;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0,255,0,0.5);
+}
+
+#start-button:hover {
+    background-color: #0a0;
+}
+
+/* Tetromino colors */
+.I { background-color: cyan; border-color: darkcyan; }
+.J { background-color: blue; border-color: darkblue; }
+.L { background-color: orange; border-color: darkorange; }
+.O { background-color: yellow; border-color: goldenrod; }
+.S { background-color: limegreen; border-color: darkgreen; }
+.T { background-color: purple; border-color: darkmagenta; }
+.Z { background-color: red; border-color: darkred; }
