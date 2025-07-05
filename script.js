@@ -99,6 +99,26 @@ function fillBag() {
     }
 }
 
+// Helper function to check for collisions
+function isColliding(position, shape) {
+    return shape.some(index => {
+        const newPos = position + index;
+        const row = Math.floor(newPos / BOARD_WIDTH);
+        const col = newPos % BOARD_WIDTH;
+
+        const isLeftEdge = (index % BOARD_WIDTH === 0 && col === BOARD_WIDTH - 1);
+        const isRightEdge = (index % BOARD_WIDTH === BOARD_WIDTH - 1 && col === 0);
+
+        return (
+            isLeftEdge ||
+            isRightEdge ||
+            newPos < 0 || // Check top boundary
+            newPos >= BOARD_WIDTH * BOARD_HEIGHT || // Check bottom boundary
+            (board[newPos] && board[newPos].classList.contains('block')) // Check for collision with existing blocks
+        );
+    });
+}
+
 function generateNewBlock() {
     if (bag.length === 0) {
         fillBag();
@@ -113,14 +133,6 @@ function generateNewBlock() {
         shape: TETROMINOS[random][0]
     };
 
-    // Check for game over before drawing the new block
-    if (currentBlock.shape.some(index => board[currentBlock.position + index].classList.contains('block'))) {
-        alert('게임 오버!');
-        clearInterval(gameInterval);
-        startButton.textContent = '다시 시작'; // Allow restarting
-        return;
-    }
-
     // Prepare next block
     if (bag.length === 0) {
         fillBag();
@@ -134,6 +146,14 @@ function generateNewBlock() {
         shape: TETROMINOS[nextRandom][0]
     };
     drawNextBlock();
+
+    // Check for game over before drawing the new block
+    if (isColliding(currentBlock.position, currentBlock.shape)) {
+        alert('게임 오버!');
+        clearInterval(gameInterval);
+        startButton.textContent = '다시 시작'; // Allow restarting
+        return;
+    }
 
     draw();
 }
@@ -190,44 +210,41 @@ function undraw() {
 function moveDown() {
     undraw();
     currentBlock.position += BOARD_WIDTH;
-    draw();
-    freeze();
+    if (isColliding(currentBlock.position, currentBlock.shape)) {
+        currentBlock.position -= BOARD_WIDTH; // Move back if collided
+        draw();
+        freeze();
+    } else {
+        draw();
+    }
 }
 
 function freeze() {
-    // Check if the block has landed
-    if (currentBlock.shape.some(index =>
-        (currentBlock.position + index + BOARD_WIDTH >= BOARD_WIDTH * BOARD_HEIGHT) || // Hit bottom
-        (board[currentBlock.position + index + BOARD_WIDTH] && board[currentBlock.position + index + BOARD_WIDTH].classList.contains('block')) // Hit another block
-    )) {
-        // Add the current block to the fixed board
-        currentBlock.shape.forEach(index => board[currentBlock.position + index].classList.add('block', currentBlock.color));
+    // Add the current block to the fixed board
+    currentBlock.shape.forEach(index => board[currentBlock.position + index].classList.add('block', currentBlock.color));
 
-        checkRows(); // Check for completed rows
+    checkRows(); // Check for completed rows
 
-        // Generate the next block
-        generateNewBlock();
-    }
+    // Generate the next block
+    generateNewBlock();
 }
 
 function moveLeft() {
     undraw();
-    const isAtLeftEdge = currentBlock.shape.some(index => (currentBlock.position + index) % BOARD_WIDTH === 0);
-    if (!isAtLeftEdge) currentBlock.position -= 1;
-    // Check for collision after moving
-    if (currentBlock.shape.some(index => board[currentBlock.position + index].classList.contains('block'))) {
-        currentBlock.position += 1; // Move back if collided
+    const originalPosition = currentBlock.position;
+    currentBlock.position -= 1;
+    if (isColliding(currentBlock.position, currentBlock.shape)) {
+        currentBlock.position = originalPosition; // Move back if collided
     }
     draw();
 }
 
 function moveRight() {
     undraw();
-    const isAtRightEdge = currentBlock.shape.some(index => (currentBlock.position + index) % BOARD_WIDTH === BOARD_WIDTH - 1);
-    if (!isAtRightEdge) currentBlock.position += 1;
-    // Check for collision after moving
-    if (currentBlock.shape.some(index => board[currentBlock.position + index].classList.contains('block'))) {
-        currentBlock.position -= 1; // Move back if collided
+    const originalPosition = currentBlock.position;
+    currentBlock.position += 1;
+    if (isColliding(currentBlock.position, currentBlock.shape)) {
+        currentBlock.position = originalPosition; // Move back if collided
     }
     draw();
 }
@@ -235,13 +252,14 @@ function moveRight() {
 function rotate() {
     undraw();
     const originalRotation = currentBlock.rotation;
+    const originalShape = currentBlock.shape;
+
     currentBlock.rotation = (currentBlock.rotation + 1) % currentBlock.tetromino.length;
     currentBlock.shape = currentBlock.tetromino[currentBlock.rotation];
 
-    // Simple collision check after rotation
-    if (currentBlock.shape.some(index => board[currentBlock.position + index].classList.contains('block'))) {
+    if (isColliding(currentBlock.position, currentBlock.shape)) {
         currentBlock.rotation = originalRotation; // Revert rotation if collided
-        currentBlock.shape = currentBlock.tetromino[currentBlock.rotation];
+        currentBlock.shape = originalShape;
     }
     draw();
 }
